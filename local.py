@@ -3,111 +3,101 @@ from PIL import Image, ImageDraw
 from random import random, randrange
 import math
 
+from sqlalchemy import true
+
 #img = Image.open('car.tif')
 # img.show()
 
-ground = Image.new('RGB', (15100, 600))
-line = []  # maybe line could be local to makeRandomTerrain?
+
+from pt_miniscreen.core import Component
 
 
-def curveTo(currentX, currentY, curve_endX, curve_endY, smoothness=100):
-    curve = []
-    split = (curve_endX - currentX) / smoothness
-    for i in range(1, smoothness):
-        x = currentX + (split * i)
-        curve.append(
-            (x, (-7 * math.pow(10, -7) * math.pow(x, 3) -
-             0.0011 * math.pow(x, 2) + 0.235 * x + 682.68))
-        )
-    return [currentX, currentY] + curve + [curve_endX, curve_endY]
+class Wheel(Component):
 
+    y = 0
+    dy = 0
+    dx = 0
+    accellerating = False
 
-def makeRandomTerrain():
-    basey = 250  # bottom of screen
-    x = 0  # where are we along
-    ang = 0  # gradient of hill
-    hei = basey - 220  # max height for terrain
-    pit = 0  # how many pits have we made
-    lastpit = 0  # used to make sure pits aren't too close together
-    boulderCount = 0  # number of boulders we made
+    # inside some kind of wheel component (of which there will be 2).
+    # run on increment (frame)
+    # responsible for controlling their general physics and collision
+    def wheelControl(self):
+        # immediately we apply vertical motion to the wheel
+        # this could be negative (up) or positive (down)
+        # the value of dy is set by a number of things
+        # accelerating is a boolean determined by keypress
+        self.y += self.dy
+        self.accellerating = False
+        oneOnGround = False
 
-    # clear any existing ground
-    # move to bottom left of shape
-    line.extend([x, basey])
-    # set fill colour
+        if whateverLeftkeydown and oneOnGround:
+            self.dx += 0.3
+            mydir = 1
+            self.accellerating = True
 
-    steps = 0
+        if whateverRightKeydown and oneOnGround:
+            self.dx -= 0.3
+            mydir = -1
+            self.accellerating = True
 
-    # this is the start of a large loop within makeRandomTerrain which is responsible for creating the physical terrain
-    # our levels are a maximum width of 15100 px. the level is created through a series of segments each attached to the next
-    # a segment can be between 100 and 50 px wide. each segment can be at any angle.
+        # above: this code is responsible for accepting user input. first we check to see if the player is pressing the right button
+        # if so, and at least one wheel is on the ground we increase the wheel's dx by 0.3, set the valie of the mydir variables to 1
+        # and set the value of the accelerating variable to.
+        # By increasing dx, rather than simply moving _x, we create a motion by which the vehicle gradually speeds up from a motionless state
+        # and vice-versa for the left key
 
-    # once we have calculate this width and stored it in wid, we then modify the hei variable based on that width, multiplied
-    # by the sin value of the angle.
+        if self.accelerating and math.abs(self.dx) < 2:
+            # make engine sound
+            self.playsound()
 
-    # after the segment has been created we modify the angle variable by increasing or decreasing it by up to -1 or 1 this means
-    # anything between 0 and 1 will increase the angle (slope down) and anything between 0 and -1 will decrease the angle (slope up)
-    while x < 15100:
-        wid = random() * 100 + 50
-        hei += math.sin(ang) * wid
-        ohei = hei
-        ang += (random() * 2) - 1
+        # apply natural forces to the wheel. The first line applies some friction (slowing)
+        # the second line is gravity (on mars)
+        if oneOnGround:
+            self.dx *= 0.98
+            self.dy += 0.5
 
-        # responsible for controlling the vertical endpoint of the current segment.
-        # if pit > 0 that means we're drawing a pit so height is off the bottom of the screen
-        # then decrement the pit variable - we set the pit variable to between 2 and 5 which determines how wide it will be
-        # otherwise in the second if statement, if the hei value has somehow reached - 100 then we set it back to -100 and change the
-        # angle to 0.1. when the hei variable is less than 100 (heading off the top of the screen) so we force it to halt its ascent
-        # and change it ang to -0.1 which will make it angle down slightly. this has the effectt of making bumpy platues
-        # the third if statement checks to see if the hull has reached the ground level following the same rules.
-        if pit > 0:
-            hei = basey + 400
-            pit -= 1
-        elif hei < -100:
-            hei = -100
-            ang = 0.1
-        elif hei > basey - 100:
-            hei = basey - 100
-            ang = -0.1
+        # controlling arbitraty collision with the ground
+        if ground.hitTest(self._x, self._y, True):
+            # first make sure that the wheel is touching the terrain
+            # figure out how deep it is
+            # if ground slopes up we ned to make sure that the wheel is moved up to the first valid position that is not in the ground
+            # tricky because of slopes
+            ty = self.y
+            cnt = 0
+            while ground.hitTest(self.x, ty):
+                ty -= 1
+                cnt += 1
+            # when the loop ends we will be left with a y value in ty which is the place to put the wheel. we also increment cnt because we need it
 
-        # generation of pits and canyons
-        if lastpit > 0:
-            lastpit -= 1
+            # cnt is the numberof pixels the climb consists of. One average, when we're going up small slopes cnt < 5
+            # the purpose of cnt is to determine if we have a really high climb. this happens if we hit a wall
 
-        if random() < 0.033 and pit == 0 and x > 700 and lastpit == 0:
-            # begin pit
-            pit = math.floor(random() * 3) + 3
-            lastpit = pit + 5
-            hei = ohei - 40  # wtf
+            if cnt > 70:
+                # hit a wall - we reverse the direction of both wheels
 
-        x += wid
-
-        if randrange(10) > 5:
-            # draw lineTo(x, hei)
-            line.extend([x, hei])
+                wheel0.dx *= -1
+                wheel1.dx *= -1
+                ground.x -= self.dx
+                # play crash sound
+            else:
+                self.y = ty
+                if cnt < 5:
+                    cnt = 0
+                    self.y += -cnt / 3  # gives the wheel some vertical velocity due to the hill it climbed
+                    self.onGround = True  # should this be oneOnGround?
         else:
-            # bob = curveTo(line[-2], line[-1], x+wid, hei)
-            line.extend([x, hei])
+            self.onGround = False
 
-            # make a boulder
-            # if random() < 0.1 and ang > -0.1 and x > 500 and x < 14000:
+        # apply caps to the maximum vertical speed a wheel can have
+        if self.dy > 15:
+            self.dy = 15
 
-            # make a water droplet
-            # if((steps % 25) == 20)
+        if self.dy < -15:
+            self.dy = -15
 
-        steps += 1
-        ohei = hei
+    draw = ImageDraw.Draw(ground)
 
-    # do finish line
-    line.extend([x, basey + 400])
-    line.extend([0, basey+400])
-    return line
+    draw.polygon(line, fill="white")
 
-
-line = makeRandomTerrain()
-
-draw = ImageDraw.Draw(ground)
-
-draw.polygon(line, fill="white")
-
-ground.show()
+    ground.show()

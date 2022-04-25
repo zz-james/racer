@@ -96,6 +96,11 @@ class Ground(Component):
         line.extend([0, basey+400])
         return line
 
+    # determine is the x and y is inside the ground
+    # we can probably grab a pixel, if it is white it is in the ground
+    def hitTest(x, y):
+        return False
+
     # def increment(self):
     #     # state lives in self.state
     #     # self.state.update({"count": self.state["count"] + 1})
