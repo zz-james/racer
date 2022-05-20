@@ -95,7 +95,7 @@ function showlives() {
 }
 
 function wheelControl() {
-  this._y += this.dy; // what is this here??
+  this._y += this.dy; // what is this here??  -- move the wheel by by
 
   accelerating = false;
 

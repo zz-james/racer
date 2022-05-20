@@ -1,9 +1,11 @@
 # composes a frame
 
-from PIL import ImageDraw
+from PIL import ImageDraw, Image
 from pt_miniscreen.core import Component
 import ground
 import wheel
+
+# this is the root component
 
 
 class Frame(Component):
@@ -19,13 +21,13 @@ class Frame(Component):
 
         # self.wheel1 = self.create_child(wheel.Wheel)
 
-        self.create_interval(self.make_frame, 1 / 24)
+        # self.create_interval(self.make_frame, 1 / 24)
 
     def make_frame(self):
         self.ground.updateFrame(self.wheel0)
         self.wheel0.wheelControl(self.LEFT_PRESSED, self.RIGHT_PRESSED)
 
-    def render(self, image):
+    def render(self, image):  # my root component recieves an image from the miniscreen app
         return self.ground.render(image.crop(
             (0, 0, image.height, image.width)
         ))
