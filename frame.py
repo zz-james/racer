@@ -17,15 +17,15 @@ class Frame(Component):
         super().__init__(**kwargs)
 
         self.ground = self.create_child(ground.Ground)
-        self.wheel0 = self.create_child(wheel.Wheel, ground=self.ground)
+        self.wheely = self.create_child(wheel.Wheel, ground=self.ground)
 
         # self.wheel1 = self.create_child(wheel.Wheel)
 
-        # self.create_interval(self.make_frame, 1 / 24)
+        self.create_interval(self.make_frame, 1 / 24)
 
     def make_frame(self):
-        self.ground.updateFrame(self.wheel0)
-        self.wheel0.wheelControl(self.LEFT_PRESSED, self.RIGHT_PRESSED)
+        self.ground.updateFrame(self.wheely)
+        self.wheely.wheelControl(self.LEFT_PRESSED, self.RIGHT_PRESSED)
 
     def render(self, image):  # my root component recieves an image from the miniscreen app
         return self.ground.render(image.crop(

@@ -16,13 +16,13 @@ class Ground(Component):
         super().__init__(**kwargs)
         # do setup
         self.ground = self.makeRandomTerrain(
-            Image.new('RGB', (self.levelSize, 128), 'white'))  # need to make this the right width and height
+            Image.new('RGB', (self.levelSize, 128), (0, 0, 0)))  # need to make this the right width and height
 
     def makeRandomTerrain(self, pImage):
-        baseY = 112  # bottom of screen
+        baseY = 120  # bottom of screen
         x = 0  # where are we along
         angle = 0  # gradient of hill
-        height = baseY - 96  # max height for terrain
+        height = 10  # the height of the terrain is 128 - height
         pit = 0  # how many pits have we made
         lastpit = 0  # used to make sure pits aren't too close together
         boulderCount = 0  # number of boulders we made
@@ -48,7 +48,7 @@ class Ground(Component):
             segWidth = random() * 100 + 50
             height += math.sin(angle) * segWidth
             oldHeight = height  # ?
-            angle += (random() * 2) - 1
+            angle += (random() * 0.5) - 0.25
 
             # responsible for controlling the vertical endpoint of the current segment.
             # if pit > 0 that means we're drawing a pit so height is off the bottom of the screen
@@ -57,13 +57,13 @@ class Ground(Component):
             # angle to 0.1. when the height variable is less than 100 (heading off the top of the screen) so we force it to halt its ascent
             # and change it angle to -0.1 which will make it angle down slightly. this has the effectt of making bumpy platues
             # the third if statement checks to see if the hull has reached the ground level following the same rules.
-            # if pit > 0:
-            #     height = baseY + 84
-            #     pit -= 1
-            if height < 0:
-                height = 10
-                angle = 0.1
-            elif height > baseY - 10:
+            if pit > 0:
+                height = baseY + 32  # height goes off the bottom
+                pit -= 1
+            elif height < 20:  # it went up too far
+                height = 20
+                angle = +0.1
+            elif height > baseY:  # it went down too far
                 height = baseY - 10
                 angle = -0.1
 
@@ -75,7 +75,8 @@ class Ground(Component):
                 # begin pit
                 pit = math.floor(random() * 3) + 3
                 lastpit = pit + 5
-                height = oldHeight - 10  # wtf
+                # make this 10 px higher than the height at the end of the last itteration
+                height = oldHeight + 20
 
             x += segWidth
 
@@ -83,7 +84,7 @@ class Ground(Component):
                 # draw lineTo(x, height)
                 line.extend([x, height])
             else:
-                # bob = curveTo(line[-2], line[-1], x+segWidth, height)
+                # curveTo(line[-2], line[-1], x+segWidth, height): no curve api :-(
                 line.extend([x, height])
 
                 # make a boulder
@@ -93,34 +94,35 @@ class Ground(Component):
                 # if((steps % 25) == 20)
 
             steps += 1
-            oldHeight = height
+            oldHeight = height  # store the old height so we can use it in the next itteration
 
         # do finish line
         line.extend([x, baseY + 100])
         line.extend([0, baseY + 100])
+
         draw = ImageDraw.Draw(pImage)
-        draw.polygon(line, fill="red")
+        draw.polygon(line, fill=(255, 0, 0))
         pImage.show()
         return pImage
 
     # determine is the x and y is inside the ground
     # we can probably grab a pixel, if it is white it is in the ground
     def hitTest(self, x, y):
-        return False
+        return self.ground.getPixel(x, y)
 
     # def increment(self):
     #     # state lives in self.state
     #     # self.state.update({"count": self.state["count"] + 1})
 
     def updateFrame(self, wheel):
-        self.x -= wheel.dx
+        self.x = wheel.dx
 
-        print(self.x)
+        # print(self.x)
         # print('--------------')
         # the vehicle doesn't move, the ground movie clip moves backwards
         # so starting at 0 it becomes negative
         # the wheels only move up and down
-        if self.x > 0:
+        if self.x < 0:
             self.x = 0
             wheel.dx = 0
             # this stops all wheel motion and moves the ground to 0 if the value of ground > 1
@@ -153,4 +155,5 @@ class Ground(Component):
         onebit = self.ground.convert("1")
         # onebit.show()
         # return the updated image
-        return onebit.crop((0, 0, image.height, image.width))
+        print(onebit.width)
+        return onebit.crop((self.x, 0, image.height, image.width + self.x))
