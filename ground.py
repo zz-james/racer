@@ -2,6 +2,7 @@ from random import random, randrange
 import math
 from PIL import ImageDraw, Image
 from pt_miniscreen.core import Component
+import wheel
 
 
 class Ground(Component):
@@ -15,6 +16,9 @@ class Ground(Component):
         # pass key word args to super
         super().__init__(**kwargs)
         # do setup
+        self.wheely = self.create_child(wheel.Wheel)
+
+        # make the source image
         self.ground = self.makeRandomTerrain(
             Image.new('RGB', (self.levelSize, 128), (0, 0, 0)))  # need to make this the right width and height
 
@@ -114,8 +118,11 @@ class Ground(Component):
     #     # state lives in self.state
     #     # self.state.update({"count": self.state["count"] + 1})
 
-    def updateFrame(self, wheel):
-        self.x = wheel.dx
+    def updateFrame(self, LEFT_PRESSED, RIGHT_PRESSED):
+        # this._x -= wheel1.dx;
+        self.wheely.wheelControl(LEFT_PRESSED, RIGHT_PRESSED)
+
+        self.x += self.wheely.dx
 
         # print(self.x)
         # print('--------------')
@@ -124,7 +131,7 @@ class Ground(Component):
         # the wheels only move up and down
         if self.x < 0:
             self.x = 0
-            wheel.dx = 0
+            self.wheely.dx = 0
             # this stops all wheel motion and moves the ground to 0 if the value of ground > 1
             # stops the player driving off the left
 
@@ -144,10 +151,13 @@ class Ground(Component):
 
         # finish
         if self.x > 15000:
-            wheel.y = 100
-            wheel.dx = 0
+            self.wheely.y = 100
+            self.wheely.dx = 0
             self.x = 0
         # some kind of result.
+
+        print('--')
+        print(self.x)
 
     def render(self, image):
 
@@ -155,5 +165,4 @@ class Ground(Component):
         onebit = self.ground.convert("1")
         # onebit.show()
         # return the updated image
-        print(onebit.width)
-        return onebit.crop((self.x, 0, image.height, image.width + self.x))
+        return onebit.crop((0 + self.x, 0, image.height + self.x, image.width))

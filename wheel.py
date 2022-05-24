@@ -12,11 +12,9 @@ class Wheel(Component):
     y = 0
     accelerating = False
 
-    def __init__(self, ground, **kwargs):
+    def __init__(self, **kwargs):
         # pass key word args to super
         super().__init__(**kwargs)
-        # do setup
-        self.ground = ground
 
     # inside some kind of wheel component (of which there will be 2).
     # run on increment (frame)
@@ -28,14 +26,14 @@ class Wheel(Component):
         # accelerating is a boolean determined by keypress
         self.y += self.dy
         self.accellerating = False
-        oneOnGround = True  # make this false
+        onGround = True  # make this false
 
-        if RIGHT_PRESSED and oneOnGround:
+        if RIGHT_PRESSED and onGround:
             self.dx += 0.3
             mydir = 1
             self.accellerating = True
 
-        if LEFT_PRESSED and oneOnGround:
+        if LEFT_PRESSED and onGround:
             self.dx -= 0.3
             mydir = -1
             self.accellerating = True
@@ -52,7 +50,7 @@ class Wheel(Component):
 
         # # apply natural forces to the wheel. The first line applies some friction (slowing)
         # # the second line is gravity (on mars)
-        if oneOnGround:
+        if onGround:
             self.dx *= 0.98
             self.dy += 0.5
 
@@ -95,13 +93,16 @@ class Wheel(Component):
         if self.dy < -15:
             self.dy = -15
 
+        self.state.update(
+            {'dy': self.dy, 'dx': self.dx, 'accelerating': self.accelerating}
+        )
     # def increment(self):
     #     # state lives in self.state
     #     # self.state.update({"count": self.state["count"] + 1})
 
     def render(self, image):
         # draw the outline of a rectangle on the passed image
-        draw = ImageDraw.Draw(image)
+        # draw = ImageDraw.Draw(image)
 
         # return the updated image
         return image
