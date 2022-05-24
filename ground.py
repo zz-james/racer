@@ -16,7 +16,7 @@ class Ground(Component):
         # pass key word args to super
         super().__init__(**kwargs)
         # do setup
-        self.wheely = self.create_child(wheel.Wheel)
+        self.wheely = self.create_child(wheel.Wheel, ground=self)
 
         # make the source image
         self.ground = self.makeRandomTerrain(
@@ -106,13 +106,12 @@ class Ground(Component):
 
         draw = ImageDraw.Draw(pImage)
         draw.polygon(line, fill=(255, 0, 0))
-        pImage.show()
         return pImage
 
     # determine is the x and y is inside the ground
     # we can probably grab a pixel, if it is white it is in the ground
     def hitTest(self, x, y):
-        return self.ground.getPixel(x, y)
+        return self.ground.getpixel((x, y)) != (0, 0, 0)
 
     # def increment(self):
     #     # state lives in self.state
@@ -155,9 +154,6 @@ class Ground(Component):
             self.wheely.dx = 0
             self.x = 0
         # some kind of result.
-
-        print('--')
-        print(self.x)
 
     def render(self, image):
 

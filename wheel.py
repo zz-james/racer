@@ -1,3 +1,4 @@
+import os
 from random import random, randrange
 import math
 from PIL import ImageDraw
@@ -12,9 +13,11 @@ class Wheel(Component):
     y = 0
     accelerating = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, ground=None, **kwargs):
         # pass key word args to super
         super().__init__(**kwargs)
+        self.ground = ground
+        # if no groud then throw or something
 
     # inside some kind of wheel component (of which there will be 2).
     # run on increment (frame)
@@ -25,34 +28,34 @@ class Wheel(Component):
         # the value of dy is set by a number of things
         # accelerating is a boolean determined by keypress
         self.y += self.dy
-        self.accellerating = False
+        accelerating = False
         onGround = True  # make this false
 
         if RIGHT_PRESSED and onGround:
             self.dx += 0.3
             mydir = 1
-            self.accellerating = True
+            accelerating = True
 
         if LEFT_PRESSED and onGround:
             self.dx -= 0.3
             mydir = -1
-            self.accellerating = True
+            accelerating = True
 
         # above: this code is responsible for accepting user input. first we check to see if the player is pressing the right button
         # if so, and at least one wheel is on the ground we increase the wheel's dx by 0.3, set the valie of the mydir variables to 1
-        # and set the value of the accelerating variable to.
+        # and set the value of the accelerating variable too.
         # By increasing dx, rather than simply moving _x, we create a motion by which the vehicle gradually speeds up from a motionless state
         # and vice-versa for the left key
-
-        # if self.accelerating and math.abs(self.dx) < 2:
-        #     # make engine sound
-        #     self.playsound()
+        if accelerating and (abs(self.dx) < 0.5):
+            # make engine sound
+            os.system('aplay squeal.wav')
 
         # # apply natural forces to the wheel. The first line applies some friction (slowing)
         # # the second line is gravity (on mars)
         if onGround:
             self.dx *= 0.98
-            self.dy += 0.5
+
+        self.dy += 0.5
 
         # controlling arbitraty collision with the ground
         # if self.ground.hitTest(self.x, self.y):
@@ -94,8 +97,9 @@ class Wheel(Component):
             self.dy = -15
 
         self.state.update(
-            {'dy': self.dy, 'dx': self.dx, 'accelerating': self.accelerating}
+            {'dy': self.dy, 'dx': self.dx}
         )
+
     # def increment(self):
     #     # state lives in self.state
     #     # self.state.update({"count": self.state["count"] + 1})
