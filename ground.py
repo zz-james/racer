@@ -10,17 +10,19 @@ class Ground(Component):
     level = []
     x = 0
     y = 295
-    levelSize = 15100
+    levelSize = 1000  # 15100
 
     def __init__(self, **kwargs):
         # pass key word args to super
         super().__init__(**kwargs)
         # do setup
-        self.wheely = self.create_child(wheel.Wheel, ground=self)
+        self.wheely = self.create_child(wheel.Wheel, inGround=self.inGround)
 
         # make the source image
         self.ground = self.makeRandomTerrain(
             Image.new('RGB', (self.levelSize, 128), (0, 0, 0)))  # need to make this the right width and height
+
+        self.ground.show()
 
     def makeRandomTerrain(self, pImage):
         baseY = 120  # bottom of screen
@@ -110,7 +112,7 @@ class Ground(Component):
 
     # determine is the x and y is inside the ground
     # we can probably grab a pixel, if it is white it is in the ground
-    def hitTest(self, x, y):
+    def inGround(self, x, y):
         return self.ground.getpixel((x, y)) != (0, 0, 0)
 
     # def increment(self):
@@ -158,7 +160,9 @@ class Ground(Component):
     def render(self, image):
 
         # paste ground onto image
-        onebit = self.ground.convert("1")
+        onebit = self.ground.convert("1").crop(
+            (0 + self.x, 0, image.height + self.x, image.width))
         # onebit.show()
+
         # return the updated image
-        return onebit.crop((0 + self.x, 0, image.height + self.x, image.width))
+        return self.wheely.render(onebit)

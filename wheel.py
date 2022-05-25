@@ -8,15 +8,15 @@ from pt_miniscreen.core import Component
 class Wheel(Component):
 
     dx = 0
-    dy = 0
+    dy = 0   # vertical speed
     x = 0
     y = 0
     accelerating = False
 
-    def __init__(self, ground=None, **kwargs):
+    def __init__(self, inGround=None, **kwargs):
         # pass key word args to super
         super().__init__(**kwargs)
-        self.ground = ground
+        self.inGround = inGround
         # if no groud then throw or something
 
     # inside some kind of wheel component (of which there will be 2).
@@ -28,6 +28,7 @@ class Wheel(Component):
         # the value of dy is set by a number of things
         # accelerating is a boolean determined by keypress
         self.y += self.dy
+
         accelerating = False
         onGround = True  # make this false
 
@@ -46,9 +47,9 @@ class Wheel(Component):
         # and set the value of the accelerating variable too.
         # By increasing dx, rather than simply moving _x, we create a motion by which the vehicle gradually speeds up from a motionless state
         # and vice-versa for the left key
-        if accelerating and (abs(self.dx) < 0.5):
+        # if accelerating and (abs(self.dx) < 0.5):
             # make engine sound
-            os.system('aplay squeal.wav')
+            # os.system('aplay squeal.wav')
 
         # # apply natural forces to the wheel. The first line applies some friction (slowing)
         # # the second line is gravity (on mars)
@@ -58,7 +59,7 @@ class Wheel(Component):
         self.dy += 0.5
 
         # controlling arbitraty collision with the ground
-        # if self.ground.hitTest(self.x, self.y):
+        # if self.inGround(self.x, self.y):
         #     # first make sure that the wheel is touching the terrain
         #     # figure out how deep it is
         #     # if ground slopes up we ned to make sure that the wheel is moved up to the first valid position that is not in the ground
@@ -96,6 +97,8 @@ class Wheel(Component):
         if self.dy < -15:
             self.dy = -15
 
+        print(self.y)
+
         self.state.update(
             {'dy': self.dy, 'dx': self.dx}
         )
@@ -107,6 +110,6 @@ class Wheel(Component):
     def render(self, image):
         # draw the outline of a rectangle on the passed image
         # draw = ImageDraw.Draw(image)
-
+        print('wheel render')
         # return the updated image
         return image
