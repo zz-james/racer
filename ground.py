@@ -113,7 +113,6 @@ class Ground(Component):
     # determine is the x and y is inside the ground
     # we can probably grab a pixel, if it is white it is in the ground
     def inGround(self, x, y):
-        print(x, y)
         return self.ground.getpixel((x, y)) != (0, 0, 0)
 
     # def increment(self):

@@ -29,6 +29,7 @@ class Wheel(Component):
         # the value of dy is set by a number of things
         # accelerating is a boolean determined by keypress
         self.y += self.dy
+        self.x += self.dx
 
         accelerating = False
         onGround = True  # make this false
@@ -83,7 +84,7 @@ class Wheel(Component):
                 self.ground.x -= self.dx
                 # play crash sound
             else:
-                self.y = 10
+                self.y = ty
                 self.dy = -2
                 # if count < 5:
                 #     count = 0
@@ -112,7 +113,7 @@ class Wheel(Component):
         draw = ImageDraw.Draw(image)
 
       # (x1, y1, x2, y2)
-        draw.ellipse((10, 0 + self.y, 20, 10 + self.y), outline="white")
+        draw.ellipse((10, -10 + self.y, 20, 0 + self.y), outline="white")
 
         # print('wheel render')
         # return the updated image
