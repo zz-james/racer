@@ -7,11 +7,12 @@ from pt_miniscreen.core import Component
 
 class Wheel(Component):
 
-    dx = 0
+    dx = 5
     dy = 0   # vertical speed
     x = 0
     y = 0
     accelerating = False
+    width = 10
 
     def __init__(self, inGround=None, **kwargs):
         # pass key word args to super
@@ -59,34 +60,35 @@ class Wheel(Component):
         self.dy += 0.5
 
         # controlling arbitraty collision with the ground
-        # if self.inGround(self.x, self.y):
-        #     # first make sure that the wheel is touching the terrain
-        #     # figure out how deep it is
-        #     # if ground slopes up we ned to make sure that the wheel is moved up to the first valid position that is not in the ground
-        #     # tricky because of slopes
-        #     ty = self.y
-        #     cnt = 0
-        #     while self.ground.hitTest(self.x, ty):
-        #         ty -= 1
-        #         cnt += 1
-        #     # when the loop ends we will be left with a y value in ty which is the place to put the wheel. we also increment cnt because we need it
+        if self.inGround(self.x, self.y):
+            # first make sure that the wheel is touching the terrain
+            # figure out how deep it is
+            # if ground slopes up we ned to make sure that the wheel is moved up to the first valid position that is not in the ground
+            # tricky because of slopes
+            ty = self.y
+            count = 0
+            while self.inGround(self.x, ty):
+                ty -= 1
+                count += 1
+            # when the loop ends we will be left with a y value in ty which is the place to put the wheel. we also increment count because we need it
 
-        #     # cnt is the numberof pixels the climb consists of. One average, when we're going up small slopes cnt < 5
-        #     # the purpose of cnt is to determine if we have a really high climb. this happens if we hit a wall
+            # count is the numberof pixels the climb consists of. One average, when we're going up small slopes count < 5
+            # the purpose of count is to determine if we have a really high climb. this happens if we hit a wall
 
-        #     if cnt > 70:
-        #         # hit a wall - we reverse the direction of both wheels
+            if False:  # count > 70:
+                # hit a wall - we reverse the direction of both wheels
 
-        #         self.dx *= -1
-        #         # wheel1.dx *= -1
-        #         self.ground.x -= self.dx
-        #         # play crash sound
-        #     else:
-        #         self.y = ty
-        #         if cnt < 5:
-        #             cnt = 0
-        #             self.y += -cnt / 3  # gives the wheel some vertical velocity due to the hill it climbed
-        #             self.onGround = True  # should this be oneOnGround?
+                self.dx *= -1
+                # wheel1.dx *= -1
+                self.ground.x -= self.dx
+                # play crash sound
+            else:
+                self.y = 10
+                self.dy = -2
+                # if count < 5:
+                #     count = 0
+                # self.dy += -count   # gives the wheel some vertical velocity due to the hill it climbed
+                # self.onGround = True  # should this be oneOnGround?
         # else:
         #     self.onGround = False
 
@@ -96,8 +98,6 @@ class Wheel(Component):
 
         if self.dy < -15:
             self.dy = -15
-
-        print(self.y)
 
         self.state.update(
             {'dy': self.dy, 'dx': self.dx}
@@ -109,7 +109,11 @@ class Wheel(Component):
 
     def render(self, image):
         # draw the outline of a rectangle on the passed image
-        # draw = ImageDraw.Draw(image)
-        print('wheel render')
+        draw = ImageDraw.Draw(image)
+
+      # (x1, y1, x2, y2)
+        draw.ellipse((10, 0 + self.y, 20, 10 + self.y), outline="white")
+
+        # print('wheel render')
         # return the updated image
         return image
